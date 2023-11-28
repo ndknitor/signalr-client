@@ -1,45 +1,23 @@
 import Button from "../../components/Button/Button";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Combobox } from '@headlessui/react'
 import expandMore from '../../assets/svg/expand-more.svg'
 import add from '../../assets/svg/add.svg'
 import save from '../../assets/svg/save.svg'
 import TextInput from "../../components/TextInput/TextInput";
-interface Configuration {
+interface Method {
     host: string;
-    headers?: Map<string, string>;
-    methods: Map<string, string>[];
+    name: string;
+    parameters: Map<string, string>;
 }
-const key = "configuration";
+const keyMethods = "methods";
+const keyHosts = "hosts";
 
 function Index() {
     const [query, setQuery] = useState("http://localhost:5000");
-    const [configurations, setConfigurations] = useState<Configuration[]>([]);
-    const [seletedConfiguration, setSeletedConfiguration] = useState<Configuration>();
-
-    const handleChangeConfiguration = (e: Configuration) => {
-        setSeletedConfiguration(e);
-        setQuery(e.host);
-    }
-
-    const createConfig = () => {
-        const host = query;
-        if (configurations.find(c => c.host == host)) {
-            return;
-        }
-        const configuration: Configuration = {
-            host,
-            headers: undefined,
-            methods: [
-            ]
-        };
-        setConfigurations(pre => {
-            const concat = [...pre, configuration];
-            localStorage.setItem(key, JSON.stringify(concat));
-            return concat;
-        });
-        setSeletedConfiguration(configuration);
-    }
+    const [hosts, setHosts] = useState<string[]>([]);
+    const [selectedHost, setSelectedHost] = useState<string>();
+    const [currentMethods, setCurrentMethods] = useState<Method[]>([]);
 
     const deleteConfig = () => {
 
@@ -56,17 +34,29 @@ function Index() {
     const upsertParameter = () => {
 
     }
-
-    useEffect(() => {
-        const storeConfig = JSON.parse(localStorage.getItem(key) as string) as Configuration[];
-        if (!storeConfig) {
+    const insertHost = useCallback(() => {
+        const creatingHost = query;
+        const storedHost = JSON.parse(localStorage.getItem(keyHosts) as string) as string[];
+        if (storedHost.find(h => creatingHost === h)) {
             return;
         }
-        setConfigurations(storeConfig);
-        if (storeConfig.length > 0) {
-            setSeletedConfiguration(configurations[0]);
-        }
+        const appendedHosts = [...storedHost, creatingHost];
+        setHosts(appendedHosts);
+        localStorage.setItem(keyHosts, JSON.stringify(appendedHosts));
     }, []);
+
+
+    useEffect(() => {
+        const storedHost = JSON.parse(localStorage.getItem(keyHosts) as string) as string[];
+        setHosts(storedHost);
+    }, []);
+
+    useEffect(() => {
+        const storedMethods = JSON.parse(localStorage.getItem(keyMethods) as string) as Method[];
+        if (Boolean(storedMethods)) {
+            setCurrentMethods(storedMethods.filter(m => m.host != selectedHost));
+        }
+    }, [selectedHost]);
 
 
     return (
@@ -78,7 +68,7 @@ function Index() {
             <div className="flex w-full justify-center">
                 <div className="flex flex-row justify-center gap-x-4 w-1/4 mobile:w-3/4">
                     <div style={{ width: "70%" }}>
-                        <Combobox value={seletedConfiguration} onChange={handleChangeConfiguration}>
+                        <Combobox value={selectedHost} onChange={setSelectedHost}>
                             <div className="flex flex-row">
                                 <div style={{ width: "90%" }}>
                                     <Combobox.Input
@@ -98,13 +88,13 @@ function Index() {
                             </div>
                             <Combobox.Options
                                 className="mt-2 border-t border-gray-800 bg-gray-900 text-white max-h-60 overflow-y-auto focus:outline-none">
-                                {configurations.map((url) => (
+                                {hosts.map((url) => (
                                     <Combobox.Option
-                                        key={url.host}
+                                        key={url}
                                         value={url}
                                         className="py-2 px-4 hover:bg-indigo-500 hover:text-white cursor-pointer"
                                     >
-                                        {url.host}
+                                        {url}
                                     </Combobox.Option>
                                 ))}
                             </Combobox.Options>
@@ -112,7 +102,7 @@ function Index() {
                     </div>
                     <div style={{ width: "10%" }}>
                         <div className="flex flex-row-reverse">
-                            <button onClick={createConfig} className="flex rounded-lg p-2 justify-center items-center bg-green-700">
+                            <button onClick={insertHost} className="flex rounded-lg p-2 justify-center items-center bg-green-700">
                                 <img src={save} />
                             </button>
                         </div>
@@ -129,7 +119,7 @@ function Index() {
                         <h4 style={{ fontSize: 24 }}>Methods</h4>
                     </div>
                     {
-                        seletedConfiguration?.methods.map(method =>
+                        currentMethods.map(method =>
                             <div className="flex w-full gap-x-3 rounded border-indigo-500/75 border-2 p-4 mb-8">
                                 <div style={{ width: "30%" }}>
                                     <TextInput placeholder="Method" />
@@ -142,7 +132,7 @@ function Index() {
                                                     <TextInput placeholder="Parameter" value={parameterName} />
                                                 </div>
                                                 <div style={{ width: "60%" }}>
-                                                    <TextInput className="w-full" placeholder="Value" value={method.get(parameterName)} />
+                                                    <TextInput className="w-full" placeholder="Value" value={method.parameters.get(parameterName)} />
                                                 </div>
                                             </div>
                                         )
