@@ -1,64 +1,10 @@
 import Button from "../../components/Button/Button";
-import { useCallback, useEffect, useState } from "react";
-import { Combobox } from '@headlessui/react'
-import expandMore from '../../assets/svg/expand-more.svg'
 import add from '../../assets/svg/add.svg'
-import save from '../../assets/svg/save.svg'
+import metadata from '../../../signalr.json';
 import TextInput from "../../components/TextInput/TextInput";
-interface Method {
-    host: string;
-    name: string;
-    parameters: Map<string, string>;
-}
-const keyMethods = "methods";
-const keyHosts = "hosts";
 
 function Index() {
-    const [query, setQuery] = useState("http://localhost:5000");
-    const [hosts, setHosts] = useState<string[]>([]);
-    const [selectedHost, setSelectedHost] = useState<string>();
-    const [currentMethods, setCurrentMethods] = useState<Method[]>([]);
-
-    const deleteConfig = () => {
-
-    }
-
-    const createMethod = () => {
-
-    }
-
-    const upsertMethod = () => {
-
-    }
-
-    const upsertParameter = () => {
-
-    }
-    const insertHost = useCallback(() => {
-        const creatingHost = query;
-        const storedHost = JSON.parse(localStorage.getItem(keyHosts) as string) as string[];
-        if (storedHost.find(h => creatingHost === h)) {
-            return;
-        }
-        const appendedHosts = [...storedHost, creatingHost];
-        setHosts(appendedHosts);
-        localStorage.setItem(keyHosts, JSON.stringify(appendedHosts));
-    }, []);
-
-
-    useEffect(() => {
-        const storedHost = JSON.parse(localStorage.getItem(keyHosts) as string) as string[];
-        setHosts(storedHost);
-    }, []);
-
-    useEffect(() => {
-        const storedMethods = JSON.parse(localStorage.getItem(keyMethods) as string) as Method[];
-        if (Boolean(storedMethods)) {
-            setCurrentMethods(storedMethods.filter(m => m.host != selectedHost));
-        }
-    }, [selectedHost]);
-
-
+    const meta = metadata;
     return (
         <>
             <div className="flex w-full justify-center mb-4">
@@ -68,7 +14,7 @@ function Index() {
             <div className="flex w-full justify-center">
                 <div className="flex flex-row justify-center gap-x-4 w-1/4 mobile:w-3/4">
                     <div style={{ width: "70%" }}>
-                        <Combobox value={selectedHost} onChange={setSelectedHost}>
+                        {/* <Combobox value={selectedHost} onChange={setSelectedHost}>
                             <div className="flex flex-row">
                                 <div style={{ width: "90%" }}>
                                     <Combobox.Input
@@ -98,13 +44,13 @@ function Index() {
                                     </Combobox.Option>
                                 ))}
                             </Combobox.Options>
-                        </Combobox>
+                        </Combobox> */}
                     </div>
                     <div style={{ width: "10%" }}>
                         <div className="flex flex-row-reverse">
-                            <button onClick={insertHost} className="flex rounded-lg p-2 justify-center items-center bg-green-700">
-                                <img src={save} />
-                            </button>
+                            {/* <button onClick={insertHost} className="flex rounded-lg p-2 justify-center items-center bg-green-700">
+                                    <img src={save} />
+                                </button> */}
                         </div>
                     </div>
                     <div style={{ width: "20%" }}>
@@ -118,47 +64,40 @@ function Index() {
                     <div className="flex w-full justify-center mb-4">
                         <h4 style={{ fontSize: 24 }}>Methods</h4>
                     </div>
+
                     {
-                        currentMethods.map(method =>
+                        meta.map(item =>
                             <div className="flex w-full gap-x-3 rounded border-indigo-500/75 border-2 p-4 mb-8">
-                                <div style={{ width: "30%" }}>
-                                    <TextInput placeholder="Method" />
+                                <div style={{ width: "20%" }}>
+                                    <TextInput placeholder={item.name} readOnly />
                                 </div>
-                                <div style={{ width: "70%" }}>
+                                <div style={{ width: "80%" }}>
                                     {
-                                        Object.keys(method).map(parameterName =>
-                                            <div className="flex flex-row mt-4">
-                                                <div style={{ width: "40%" }}>
-                                                    <TextInput placeholder="Parameter" value={parameterName} />
+                                        item.parameters.map(parameter =>
+                                            <div className="flex flex-row mb-5">
+                                                <div style={{ width: "30%" }}>
+                                                    <TextInput placeholder="Parameter" value={parameter} readOnly />
                                                 </div>
-                                                <div style={{ width: "60%" }}>
-                                                    <TextInput className="w-full" placeholder="Value" value={method.parameters.get(parameterName)} />
+                                                <div style={{ width: "70%" }}>
+                                                    <TextInput className="w-full" placeholder="Value" />
                                                 </div>
                                             </div>
                                         )
                                     }
                                     <div className="flex flex-row-reverse mt-4">
-                                        <button onClick={upsertParameter} className="flex rounded-lg p-2 justify-center items-center bg-indigo-800">
+                                        <button className="flex rounded-lg p-2 justify-center items-center bg-indigo-800">
                                             <img src={add} />
                                         </button>
                                     </div>
 
                                 </div>
                             </div>
+
                         )
                     }
 
-                    <div className="flex flex-row-reverse">
-                        <button onClick={upsertMethod} className="flex rounded-lg p-4 justify-center items-center bg-indigo-800">
-                            <img src={add} />
-                        </button>
-                    </div>
 
-                    <div className="flex flex-row-reverse mt-4">
-                        <button className="flex rounded-lg p-4 justify-center items-center bg-green-700">
-                            <img src={save} />
-                        </button>
-                    </div>
+
 
                 </div>
             </div>
@@ -177,5 +116,4 @@ function Index() {
         </>
     )
 }
-
 export default Index

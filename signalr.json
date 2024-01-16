@@ -1,0 +1,15 @@
+[
+    {
+        "name" : "SendMessage",
+        "parameters" :[
+            "message"
+        ]
+    },
+    {
+        "name" : "SendUserMessage",
+        "parameters" :[
+            "message",
+            "user"
+        ]
+    }
+]
